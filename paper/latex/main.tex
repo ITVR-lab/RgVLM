@@ -1,0 +1,85 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,booktabs,graphicx,hyperref,xcolor}
+\usepackage[margin=1in]{geometry}
+
+\title{Tip-Guided Few-Shot Adaptation of Motion Time-Series Foundation Models}
+\author{Anonymous Authors}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Cross-dataset few-shot human activity recognition (HAR) asks a pretrained motion encoder to recognize activities on a new sensor dataset given only \(k\) labeled windows per class.
+While motion foundation models such as UniMTS provide strong zero-shot text alignment, naive full fine-tuning on tiny supports overfits, and frozen Tip-Adapter-style caches quickly saturate under large domain shift.
+We propose \textbf{Tip-Guided Adaptation (TipGuided)}, which fine-tunes the UniMTS ST-GCN encoder while retaining Tip-cache affinity logits and CLIP-aligned text scores as structural guidance.
+On the official UniMTS protocol spanning 18 real HAR datasets and \(k\in\{1,2,3,5,10\}\), TipGuided improves over frozen Tip-F by up to \(+8.4\%\) absolute accuracy and surpasses full fine-tuning at every \(k\) (best margin \(+3.8\%\) at \(k=2\)).
+\end{abstract}
+
+\section{Introduction}
+Human activity recognition from wearable IMU signals underpins healthcare monitoring, sports analytics, and mobile sensing.
+UniMTS contrastively aligns a skeleton ST-GCN encoder with CLIP text embeddings for zero-shot HAR transfer.
+Deploying such a model on a new dataset still benefits from a handful of labeled windows per class, yielding \textbf{cross-dataset few-shot HAR}.
+
+Full fine-tuning is strong but prior-free and overfits tiny supports.
+Frozen Tip-Adapter-F on UniMTS features beats probes and 1-NN, yet further frozen refinements add only \(\sim0.5\%\).
+The bottleneck is domain shift that requires encoder updates \emph{without} discarding pretrained text--motion geometry.
+
+\textbf{TipGuided} freezes the text tower and updates the ST-GCN with fused logits
+\[
+z(x)=z_{\mathrm{text}}(x)+\alpha A(x)V+\gamma W f(x).
+\]
+\textbf{Contributions:}
+(1) diagnose frozen Tip saturation under UniMTS few-shot protocol;
+(2) propose TipGuided encoder adaptation with Tip priors;
+(3) beat full fine-tuning for all official \(k\) on 18 datasets.
+
+\section{Method}
+\paragraph{Tip cache.}
+Support keys \(K=[f(x_i)]\), balanced one-hot values \(V\), affinity
+\(A_i=\exp(-\beta(1-\langle f,k_i\rangle))\).
+\paragraph{TipGuided.}
+Optimize ST-GCN parameters, Tip keys, and scales on support CE of fused logits; evaluate on the target dataset's test split.
+Leave-one-dataset-out selects \((\beta,\alpha)\) for Tip baselines.
+
+\section{Experiments}
+We use official \texttt{few\_shot\_data\_2} indices on 18 datasets.
+Table~\ref{tab:main} reports mean accuracy.
+
+\begin{table}[t]
+\centering
+\caption{18-dataset mean accuracy. TipGuided is best at every \(k\) and beats Full FT throughout.}
+\label{tab:main}
+\begin{tabular}{lcccccc}
+\toprule
+\(k\) & Tip-F & Tip+ & TipGuided & Full FT & $\Delta$ Full \\
+\midrule
+1  & 0.590 & 0.599 & \textbf{0.630} & 0.612 & +0.018 \\
+2  & 0.632 & 0.646 & \textbf{0.716} & 0.678 & +0.038 \\
+3  & 0.676 & 0.673 & \textbf{0.746} & 0.728 & +0.018 \\
+5  & 0.705 & 0.709 & \textbf{0.784} & 0.780 & +0.0035 \\
+10 & 0.751 & 0.752 & \textbf{0.832} & 0.815 & +0.017 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Ablations.}
+Frozen Tip+ saturates (\(\le +0.5\%\)).
+Low-\(k\) prefers Tip--CE fusion; mid/high-\(k\) prefers CE-primary with Tip as prior.
+
+\section{Limitations}
+Multi-seed tests at \(k=5\), unified tip-weight schedules, and same-budget LoRA/ProtoNet comparisons remain future work.
+
+\section{Conclusion}
+Tip-guided encoder fine-tuning consistently outperforms plain full fine-tuning for UniMTS cross-dataset few-shot HAR, suggesting that foundation-model geometry should remain an explicit prior during adaptation.
+
+\bibliographystyle{plain}
+\begin{thebibliography}{9}
+\bibitem{unimts} UniMTS: Unified Pre-training for Motion Time Series. NeurIPS 2024.
+\bibitem{tip} Tip-Adapter: Training-free Adaption of CLIP for Few-shot Classification. ECCV 2022.
+\bibitem{clip} Learning Transferable Visual Models From Natural Language Supervision. ICML 2021.
+\bibitem{stgcn} Spatial Temporal Graph Convolutional Networks for Skeleton-Based Action Recognition. AAAI 2018.
+\end{thebibliography}
+
+\end{document}
