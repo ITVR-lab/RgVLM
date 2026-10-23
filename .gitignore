@@ -1,0 +1,8 @@
+
+# Installed agent skills (local)
+.cursor/skills/
+
+paper/latex/*.aux
+paper/latex/*.log
+paper/latex/*.out
+paper/latex/*.toc
