@@ -152,16 +152,25 @@ Zero-shot UniMTS; cosine 1-NN; linear probe on frozen features; Tip / Tip-F with
 Unless noted, TipGuided reports the best variant per \(k\) under the recipes above.
 
 \subsection{Main results}
-Figure~\ref{fig:main} and Table~\ref{tab:main} summarize 18-dataset mean accuracy.
-TipGuided is best at every \(k\).
-Relative to Tip-F, gains range from \(+4.0\) (k{=}1) to \(+8.4\) (k{=}2) points.
-Relative to Full FT, all gaps are positive, peaking at \(+3.8\) points for \(k{=}2\).
+Figure~\ref{fig:panel} reports per-dataset Macro-F1 under the official UniMTS few-shot protocol (\(k\in\{1,2,3,5,10\}\)).
+TipGuided (red) leads on the large majority of datasets and sample budgets; Full FT is the strongest baseline, while frozen Tip-F sits between 1-NN and Full FT.
+Table~\ref{tab:main} and Figure~\ref{fig:main} summarize the corresponding 18-dataset mean accuracy: TipGuided is best at every \(k\), with gains of up to \(+8.4\) points over Tip-F and \(+3.8\) points over Full FT (\(k{=}2\)).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{fig_fewshot_panel_f1.pdf}
+\caption{\textbf{Few-shot fine-tuning results (Macro-F1).}
+Each panel is one of the 18 UniMTS evaluation datasets.
+Curves show Macro-F1 versus number of labeled samples per class on the official \texttt{few\_shot\_data\_2} indices.
+TipGuided is highlighted in red.}
+\label{fig:panel}
+\end{figure}
 
 \begin{figure}[t]
 \centering
 \begin{subfigure}{0.56\linewidth}
 \includegraphics[width=\linewidth]{fig_main_bars.pdf}
-\caption{Main comparison.}
+\caption{Mean accuracy.}
 \label{fig:mainbars}
 \end{subfigure}
 \hfill
@@ -170,8 +179,8 @@ Relative to Full FT, all gaps are positive, peaking at \(+3.8\) points for \(k{=
 \caption{Gap vs Full FT.}
 \label{fig:delta}
 \end{subfigure}
-\caption{\textbf{Cross-dataset few-shot accuracy.}
-TipGuided exceeds Tip-F and Full FT for all official \(k\).}
+\caption{\textbf{Aggregate accuracy.}
+18-dataset mean accuracy and TipGuided$-$Full FT margins.}
 \label{fig:main}
 \end{figure}
 
